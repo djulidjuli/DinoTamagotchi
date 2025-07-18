@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dino Tamagochi</title>
+
+  <!-- Fonte Luckiest Guy -->
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0 1rem 1rem;
+      font-family: 'Luckiest Guy', cursive;
+      background: #caf0f8;
+      color: #023e8a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      user-select: none;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+      font-size: 2.5rem;
+      color: #03045e;
+      text-align: center;
+    }
+
+    /* Pet */
+    .pet-container {
+      position: relative;
+      margin-bottom: 1rem;
+      width: 150px;
+      height: 150px;
+    }
+
+    #pet {
+      font-size: 120px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.5s ease;
+    }
+
+    #emotion {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      font-size: 40px;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* Painel de status */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 16px;
+      width: 100%;
+      max-width: 480px;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-box {
+      background: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      padding: 12px;
+      text-align: center;
+      font-size: 1.2rem;
+      line-height: 1.3;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .info-box span.label {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+      color: #0077b6;
+    }
+
+    .info-box span.value {
+      font-weight: 600;
+      font-size: 1.4rem;
+      margin-top: 4px;
+      color: #03045e;
+    }
+
+    /* Barras de progresso customizadas */
+    progress {
+      width: 100%;
+      height: 18px;
+      border-radius: 12px;
+      overflow: hidden;
+      -webkit-appearance: none;
+      appearance: none;
+      background: #ddd;
+      margin-top: 6px;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+    }
+    progress::-webkit-progress-bar {
+      background-color: #ddd;
+      border-radius: 12px;
+    }
+    progress::-webkit-progress-value {
+      border-radius: 12px;
+      background-color: #0077b6;
+      transition: width 0.4s ease;
+    }
+    progress::-moz-progress-bar {
+      background-color: #0077b6;
+      border-radius: 12px;
+      transition: width 0.4s ease;
+    }
+
+    /* Ações */
+    .actions {
+      width: 100%;
+      max-width: 480px;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+      padding: 15px;
+      margin-bottom: 1.5rem;
+      user-select: none;
+    }
+
+    .food-buttons {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .food-buttons button, .actions > button {
+      flex: 1 1 120px;
+      background: #ffb703;
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 4px #fb8500;
+      color: white;
+      font-size: 1.25rem;
+      padding: 12px 8px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.1s;
+      font-family: 'Luckiest Guy', cursive;
+      user-select: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+    }
+
+    .food-buttons button:active, .actions > button:active {
+      background-color: #fb8500;
+      transform: translateY(3px);
+      box-shadow: 0 2px #c65f00;
+    }
+
+    .actions > button:disabled, .food-buttons button:disabled {
+      background-color: #cccccc;
+      box-shadow: none;
+      cursor: not-allowed;
+      color: #666666;
+    }
+
+    /* Inventário */
+    .inventory {
+      width: 100%;
+      max-width: 480px;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+      padding: 15px;
+      font-size: 1.1rem;
+      user-select: none;
+    }
+
+    /* Mensagens */
+    #message {
+      font-size: 1.25rem;
+      margin-top: 1rem;
+      min-height: 1.5em;
+      text-align: center;
+      color: #0077b6;
+      font-weight: bold;
+      user-select: none;
+    }
+
+    /* Animação emojis flutuantes */
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-60px);
+      }
+    }
+
+    .floating-emoji {
+      position: fixed;
+      font-size: 36px;
+      animation: floatUp 1.6s ease forwards;
+      pointer-events: none;
+      user-select: none;
+      z-index: 9999;
+    }
+
+    /* Responsive */
+    @media (max-width: 400px) {
+      #pet {
+        font-size: 90px;
+      }
+      .actions > button, .food-buttons button {
+        flex: 1 1 100%;
+      }
+      .info-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🦕 Meu Dino Tamagochi</h1>
+
+  <div class="pet-container">
+    <div id="pet" title="Clique para brincar!">🥚</div>
+    <div id="emotion" aria-label="Emoção do pet">🙂</div>
+  </div>
+
+  <div class="info-grid" role="list" aria-label="Status do pet">
+    <div class="info-box" role="listitem">
+      <span class="label">📅 Idade</span>
+      <span class="value" id="age">0</span>
+    </div>
+    <div class="info-box" role="listitem">
+      <span class="label">🍗 Fome</span>
+      <progress id="hunger" max="10" value="0"></progress>
+    </div>
+    <div class="info-box" role="listitem">
+      <span class="label">❤️ Saúde</span>
+      <progress id="health" max="100" value="100"></progress>
+    </div>
+    <div class="info-box" role="listitem">
+      <span class="label">🧠 IQ</span>
+      <progress id="intelligence" max="100" value="0"></progress>
+    </div>
+    <div class="info-box" role="listitem">
+      <span class="label">😃 Humor</span>
+      <span class="value" id="mood">Normal</span>
+    </div>
+    <div class="info-box" role="listitem">
+      <span class="label">📋 Status</span>
+      <span class="value" id="status">Esperando</span>
+    </div>
+  </div>
+
+  <div class="actions" role="region" aria-label="Ações disponíveis">
+    <div class="food-buttons">
+      <button id="feedApple" aria-label="Dar maçã">🍎 Maçã</button>
+      <button id="feedCake" aria-label="Dar bolo">🎂 Bolo</button>
+    </div>
+    <button id="btnStudy" aria-label="Estudar">📚 Estudar</button>
+    <button id="btnSleep" aria-label="Dormir">💤 Dormir</button>
+    <button id="btnHeal" aria-label="Dar remédio">💊 Remédio</button>
+  </div>
+
+  <div class="inventory" aria-live="polite" aria-atomic="true">
+    <strong>Inventário:</strong> <span id="inventory-items">Nenhum</span>
+  </div>
+
+  <div id="message" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    const petEl = document.getElementById('pet');
+    const emotionEl = document.getElementById('emotion');
+    const ageEl = document.getElementById('age');
+    const hungerEl = document.getElementById('hunger');
+    const healthEl = document.getElementById('health');
+    const intelligenceEl = document.getElementById('intelligence');
+    const moodEl = document.getElementById('mood');
+    const statusEl = document.getElementById('status');
+    const invEl = document.getElementById('inventory-items');
+    const messageEl = document.getElementById('message');
+
+    const btnApple = document.getElementById('feedApple');
+    const btnCake = document.getElementById('feedCake');
+    const btnStudy = document.getElementById('btnStudy');
+    const btnSleep = document.getElementById('btnSleep');
+    const btnHeal = document.getElementById('btnHeal');
+
+    // Dino evolução por idade
+    const EVOLUTIONS = [
+      { age: 0, emoji: '🥚', name: 'Ovo' },
+      { age: 2, emoji: '🦕', name: 'Filhote' },
+      { age: 5, emoji: '🦖', name: 'Jovem' },
+      { age: 8, emoji: '🐉', name: 'Adulto' },
+      { age: 12, emoji: '🐲', name: 'Dragão' },
+      { age: 16, emoji: '👹', name: 'Monstro' },
+      { age: 20, emoji: '👾', name: 'Alienígena' }
+    ];
+
+    const FOODS = {
+      apple: { hunger: 3, emoji: '🍎' },
+      cake: { hunger: 5, emoji: '🎂' },
+    };
+
+    let state = {
+      age: 0,
+      hunger: 0,
+      health: 100,
+      intelligence: 0,
+      status: 'Esperando',
+      isSick: false,
+      inventory: {
+        medicine: 0,
+      },
+    };
+
+    // Retorna emoji conforme idade
+    function getEmoji() {
+      let evo = EVOLUTIONS[0];
+      for (const e of EVOLUTIONS) {
+        if (state.age >= e.age) evo = e;
+      }
+      return evo.emoji;
+    }
+
+    // Atualiza humor e emoção
+    function updateMood() {
+      let emo = '🙂';
+
+      if (state.health <= 0) {
+        state.status = 'Morto';
+        emo = '💀';
+      } else if (state.isSick) {
+        state.status = 'Doente';
+        emo = '🤒';
+      } else if (state.hunger > 7) {
+        state.status = 'Faminto';
+        emo = '😣';
+      } else if (state.status === 'Brincando') {
+        emo = '😄';
+      } else if (state.status === 'Estudando') {
+        emo = '🤓';
+      } else if (state.status === 'Dormindo') {
+        emo = '😴';
+      } else if (state.status === 'Alimentado') {
+        emo = '😋';
+      } else if (state.status === 'Curado') {
+        emo = '😊';
+      } else if (state.status === 'Esperando') {
+        emo = '🙂';
+      }
+
+      emotionEl.textContent = emo;
+
+      // Texto humor
+      if (state.health <= 0) {
+        moodEl.textContent = 'Morto';
+      } else if (state.isSick) {
+        moodEl.textContent = 'Doente';
+      } else if (state.hunger > 7) {
+        moodEl.textContent = 'Faminto';
+      } else if (state.status === 'Brincando') {
+        moodEl.textContent = 'Feliz';
+      } else if (state.status === 'Estudando') {
+        moodEl.textContent = 'Concentrado';
+      } else if (state.status === 'Dormindo') {
+        moodEl.textContent = 'Descansando';
+      } else if (state.status === 'Alimentado') {
+        moodEl.textContent = 'Satisfeito';
+      } else if (state.status === 'Curado') {
+        moodEl.textContent = 'Recuperado';
+      } else {
+        moodEl.textContent = 'Normal';
+      }
+    }
+
+    // Atualiza UI
+    function updateUI() {
+      ageEl.textContent = state.age;
+      hungerEl.value = state.hunger;
+      healthEl.value = state.health > 0 ? state.health : 0;
+      intelligenceEl.value = Math.min(state.intelligence, 100);
+      statusEl.textContent = state.status;
+      petEl.textContent = getEmoji();
+
+      let invStr = [];
+      if (state.inventory.medicine > 0) invStr.push(`💊 x${state.inventory.medicine}`);
+      if (invStr.length === 0) invStr.push('Nenhum');
+      invEl.textContent = invStr.join(', ');
+
+      btnHeal.disabled = (state.inventory.medicine === 0 || state.health <= 0);
+
+      const disabled = (state.health <= 0);
+      btnApple.disabled = disabled;
+      btnCake.disabled = disabled;
+      btnStudy.disabled = disabled;
+      btnSleep.disabled = disabled;
+      if (!disabled && state.status !== 'Morto') {
+        statusEl.textContent = state.status;
+      } else {
+        statusEl.textContent = 'Morto';
+      }
+
+      updateMood();
+    }
+
+    // Emoji flutuante
+    function showReward(emoji) {
+      const d = document.createElement('div');
+      d.className = 'floating-emoji';
+      d.textContent = emoji;
+
+      const rect = petEl.getBoundingClientRect();
+      d.style.left = (rect.left + rect.width / 2 + (Math.random() * 60 - 30)) + 'px';
+      d.style.top = (rect.top + rect.height / 2) + 'px';
+
+      document.body.appendChild(d);
+      setTimeout(() => d.remove(), 1600);
+    }
+
+    // Ações
+    function feed(food) {
+      if (state.health <= 0) return;
+      state.hunger = Math.max(0, state.hunger - FOODS[food].hunger);
+      state.status = 'Alimentado';
+      showReward(FOODS[food].emoji);
+      updateUI();
+    }
+
+    function study() {
+      if (state.health <= 0) return;
+      state.intelligence++;
+      state.status = 'Estudando';
+      showReward('📚');
+      updateUI();
+    }
+
+    function sleep() {
+      if (state.health <= 0) return;
+      state.status = 'Dormindo';
+      state.health = Math.min(100, state.health + 10);
+      showReward('💤');
+      updateUI();
+    }
+
+    function heal() {
+      if (state.health <= 0) return;
+      if (state.isSick && state.inventory.medicine > 0) {
+        state.isSick = false;
+        state.inventory.medicine--;
+        state.health = Math.min(100, state.health + 20);
+        state.status = 'Curado';
+        showReward('💊');
+        updateUI();
+      }
+    }
+
+    // Eventos aleatórios
+    function randomEvent() {
+      if (state.health <= 0) return;
+      const r = Math.random();
+      if (r < 0.1 && !state.isSick) {
+        state.isSick = true;
+        state.status = 'Doente';
+      } else if (r >= 0.1 && r < 0.2) {
+        state.inventory.medicine++;
+        state.status = 'Recebeu remédio 💊';
+        messageEl.textContent = 'Você recebeu um remédio!';
+        setTimeout(() => { messageEl.textContent = ''; }, 3000);
+      }
+      updateUI();
+    }
+
+    // Envelhecer
+    function ageUp() {
+      if (state.health <= 0) return;
+      state.age++;
+      if (state.age % 2 === 0) {
+        state.hunger = Math.min(10, state.hunger + 1);
+      }
+      if (state.isSick) {
+        state.health = Math.max(0, state.health - 10);
+      }
+      if (state.hunger > 7) {
+        state.health = Math.max(0, state.health - 5);
+      }
+      updateUI();
+    }
+
+    // Movimento leve do pet
+    function petMove() {
+      const x = Math.random() * 10 - 5;
+      const y = Math.random() * 10 - 5;
+      petEl.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
+    // Inicializa UI
+    updateUI();
+
+    // Intervalos
+    setInterval(randomEvent, 15000);
+    setInterval(ageUp, 40000); // Cresce mais devagar
+    setInterval(petMove, 4000);
+
+    // Eventos dos botões
+    btnApple.addEventListener('click', () => feed('apple'));
+    btnCake.addEventListener('click', () => feed('cake'));
+    btnStudy.addEventListener('click', study);
+    btnSleep.addEventListener('click', sleep);
+    btnHeal.addEventListener('click', heal);
+
+    // Clique no pet para brincar
+    petEl.addEventListener('click', () => {
+      if (state.health <= 0) return;
+      state.status = 'Brincando';
+      showReward('🎉');
+      updateUI();
+    });
+  </script>
+</body>
+</html>
